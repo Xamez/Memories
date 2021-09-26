@@ -1,0 +1,12 @@
+main: fr.xamez.memories.Memories
+version: 1.0
+name: Memories
+api-version: 1.16
+author: Xamez
+website: https://github.com/orgs/Cite-Balkoura/projects
+commands:
+  memorybuild:
+    aliases:
+      - mem
+    permission: modo.use
+    permission-message: §cVous n'avez pas la permission de faire cette commande
