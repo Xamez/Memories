@@ -1,19 +1,27 @@
 package fr.xamez.memories.arena;
 
 import fr.xamez.memories.Memories;
-import net.minecraft.server.v1_16_R3.*;
+import net.minecraft.core.BlockPosition;
+import net.minecraft.network.protocol.game.PacketPlayOutLightUpdate;
+import net.minecraft.network.protocol.game.PacketPlayOutMapChunk;
+import net.minecraft.network.protocol.game.PacketPlayOutUnloadChunk;
+import net.minecraft.server.level.EntityPlayer;
+import net.minecraft.server.level.WorldServer;
+import net.minecraft.world.level.chunk.Chunk;
+import net.minecraft.world.level.chunk.ChunkSection;
+import net.minecraft.world.level.lighting.LightEngine;
 import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.type.Slab;
-import org.bukkit.craftbukkit.v1_16_R3.CraftWorld;
-import org.bukkit.craftbukkit.v1_16_R3.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_17_R1.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -47,7 +55,7 @@ public class Arena extends AbstractStruct implements Cloneable {
 
         for (int x = bottomBlockX; x <= topBlockX; x++) {
             for (int z = bottomBlockZ; z <= topBlockZ; z++) {
-                final net.minecraft.server.v1_16_R3.Chunk nmsChunk = worldServer.getChunkAt(x >> 4, z >> 4);
+                final Chunk nmsChunk = worldServer.getChunkAt(x >> 4, z >> 4);
                 for (int y = bottomBlockY; y <= topBlockY; y++) {
 
                     final Block block = world.getBlockAt(x, y, z);
@@ -77,13 +85,13 @@ public class Arena extends AbstractStruct implements Cloneable {
             }
         }
         for (Chunk chunk : chunks){
-            final PacketPlayOutUnloadChunk packetPlayOutUnloadChunk = new PacketPlayOutUnloadChunk(chunk.getPos().x, chunk.getPos().z);
-            final PacketPlayOutMapChunk packetPlayOutMapChunk = new PacketPlayOutMapChunk(chunk, 65535);
-            final PacketPlayOutLightUpdate packetPlayOutLightUpdate = new PacketPlayOutLightUpdate(chunk.getPos(), lightEngine, true);
+            final PacketPlayOutUnloadChunk packetPlayOutUnloadChunk = new PacketPlayOutUnloadChunk(chunk.getPos().getRegionX(), chunk.getPos().getRegionZ());
+            final PacketPlayOutMapChunk packetPlayOutMapChunk = new PacketPlayOutMapChunk(chunk);
+            final PacketPlayOutLightUpdate packetPlayOutLightUpdate = new PacketPlayOutLightUpdate(chunk.getPos(), lightEngine, null, null, true);
             final EntityPlayer player = ((CraftPlayer) p).getHandle();
-            player.playerConnection.sendPacket(packetPlayOutUnloadChunk);
-            player.playerConnection.sendPacket(packetPlayOutMapChunk);
-            player.playerConnection.sendPacket(packetPlayOutLightUpdate);
+            player.b.sendPacket(packetPlayOutUnloadChunk);
+            player.b.sendPacket(packetPlayOutMapChunk);
+            player.b.sendPacket(packetPlayOutLightUpdate);
         }
     }
 

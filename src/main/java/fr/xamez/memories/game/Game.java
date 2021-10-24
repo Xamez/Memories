@@ -132,7 +132,7 @@ public class Game {
             p.teleport(this.spawnLocation);
         p.setHealth(20f);
         p.setSaturation(20f);
-        //p.setGameMode(GameMode.ADVENTURE);
+        //p.setGameMode(GameMode.ADVENTURE); TODO REMETTRE
         p.setLevel(0);
         p.setExp(0f);
         setupScoreboard(p);
