@@ -3,7 +3,7 @@ plugins {
     id 'java'
 }
 
-group 'fr.xamez.memorybuild'
+group 'fr.xamez.memories'
 version '1.0'
 setLibsDirName('D:/MC/server test 1.17/plugins')
 compileJava.getOptions().setEncoding("UTF-8")
