@@ -4,10 +4,9 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import fr.xamez.memories.Memories;
-import fr.xamez.memories.arena.AbstractStruct;
-import fr.xamez.memories.arena.Arena;
-import fr.xamez.memories.arena.Structure;
-import fr.xamez.memories.game.Config;
+import fr.xamez.memories.struct.AbstractStruct;
+import fr.xamez.memories.struct.Arena;
+import fr.xamez.memories.struct.Structure;
 import org.bukkit.Location;
 
 import java.io.*;
@@ -16,23 +15,22 @@ import java.util.ArrayList;
 
 public class FileUtils {
 
-    private static final Gson GSON = new GsonBuilder()
-            .serializeNulls()
-            .setPrettyPrinting()
-            .disableHtmlEscaping()
-            .registerTypeAdapter(Location.class, new LocationAdapter())
-            .create();
+    private static final Gson GSON = new GsonBuilder().serializeNulls()
+                                                      .setPrettyPrinting()
+                                                      .disableHtmlEscaping()
+                                                      .registerTypeAdapter(Location.class, new LocationAdapter())
+                                                      .create();
     private static final File CONFIG_FILE = new File(Memories.DATA_FOLDER, "config.json");
     private static final File ARENA_FILE = new File(Memories.DATA_FOLDER, "arenas.json");
     private static final File STRUCTURE_FILE = new File(Memories.DATA_FOLDER, "structures.json");
 
-    public static void createDefaultJsonFiles(){
+    public static void createDefaultJsonFiles() {
         createJsonFile(CONFIG_FILE);
         createJsonFile(ARENA_FILE);
         createJsonFile(STRUCTURE_FILE);
     }
 
-    public static void createJsonFile(File file){
+    public static void createJsonFile(File file) {
         final File folder = Memories.DATA_FOLDER;
         try {
             if (!folder.exists()) folder.mkdir();
@@ -42,7 +40,7 @@ public class FileUtils {
         }
     }
 
-    public static void clearFile(String filename){
+    public static void clearFile(String filename) {
         final File file = new File(Memories.DATA_FOLDER, filename + ".json");
         if (!file.exists()) createJsonFile(file);
         try {
@@ -54,10 +52,10 @@ public class FileUtils {
         }
     }
 
-    public static void saveAllStruct(boolean debug){
+    public static void saveAllStruct(boolean debug) {
         createDefaultJsonFiles();
         try {
-            if (Arena.ARENAS.isEmpty()){
+            if (Arena.ARENAS.isEmpty()) {
                 if (debug) Memories.CONSOLE.sendMessage(Memories.PREFIX + "§cAucune arène enregistré !");
             } else {
                 final FileWriter arenaWriter = new FileWriter(ARENA_FILE);
@@ -65,7 +63,7 @@ public class FileUtils {
                 if (debug) Memories.CONSOLE.sendMessage(Memories.PREFIX + "§b" + Arena.ARENAS.size() + " §earènes enregistré");
                 arenaWriter.close();
             }
-            if (Structure.STRUCTURES.isEmpty()){
+            if (Structure.STRUCTURES.isEmpty()) {
                 if (debug) Memories.CONSOLE.sendMessage(Memories.PREFIX + "§cAucune structure enregistré !");
                 return;
             }
@@ -78,10 +76,10 @@ public class FileUtils {
         }
     }
 
-    public static void saveConfig(boolean debug){
+    public static void saveConfig(boolean debug) {
         try {
             final FileWriter writer = new FileWriter(CONFIG_FILE);
-            writer.write(GSON.toJson(new Config(Memories.GAME.getSpawnLocation(), Memories.GAME.getRadius())));
+            writer.write(GSON.toJson(Memories.GAME.getConfig()));
             if (debug) Memories.CONSOLE.sendMessage(Memories.PREFIX + "§eConfiguration enregistré");
             writer.close();
         } catch (IOException ignored) {
@@ -89,7 +87,7 @@ public class FileUtils {
         }
     }
 
-    public static Config loadConfig(){
+    public static Config loadConfig() {
         try {
             final FileReader reader = new FileReader(CONFIG_FILE);
             Config config = GSON.fromJson(reader, Config.class);
@@ -100,10 +98,10 @@ public class FileUtils {
         } catch (IOException ignored) {
             Memories.CONSOLE.sendMessage(Memories.PREFIX + "§cImpossible de charger la config");
         }
-        return new Config(AbstractStruct.DEFAULT_LOCATION, 0);
+        return null;
     }
 
-    public static ArrayList<Arena> loadArenas(){
+    public static ArrayList<Arena> loadArenas() {
         try {
             final FileReader reader = new FileReader(ARENA_FILE);
             final Type type = new TypeToken<ArrayList<Arena>>(){}.getType();
@@ -119,7 +117,7 @@ public class FileUtils {
         return new ArrayList<>();
     }
 
-    public static ArrayList<Structure> loadStructures(){
+    public static ArrayList<Structure> loadStructures() {
         try {
             final FileReader reader = new FileReader(STRUCTURE_FILE);
             final Type type = new TypeToken<ArrayList<Structure>>(){}.getType();

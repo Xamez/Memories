@@ -1,7 +1,7 @@
 package fr.xamez.memories.runnables;
 
 import fr.mrmicky.fastboard.FastBoard;
-import fr.xamez.memories.arena.Arena;
+import fr.xamez.memories.struct.Arena;
 import fr.xamez.memories.game.Game;
 import fr.xamez.memories.game.GameClock;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -17,7 +17,7 @@ public class ScoreboardRunnable extends BukkitRunnable {
 
     @Override
     public void run() {
-        for (FastBoard board : BOARDS.values()){
+        for (FastBoard board : BOARDS.values()) {
             final Arena arena = Game.PLAYERS_ARENA.get(board.getPlayer());
             final String arenaName = (arena == null) ? "§7Non défini" : arena.getName();
             board.updateLines(
@@ -25,8 +25,9 @@ public class ScoreboardRunnable extends BukkitRunnable {
                     "§6» §eÉtat du jeu: " + GAME.getGameState().getState(),
                     "§6» §eTemps restant: §b" + GameClock.GAME_CLOCKS.get(GAME.getGameState().name()).getFormattedTime(),
                     "§6» §eArène: §9" + arenaName,
+                    "§6» §eNombre de points: §6",
                     "",
-                    "     §aplay.ipduserver.fr"
+                    "     §aplay.capsurgrimtown.fr"
             );
         }
     }

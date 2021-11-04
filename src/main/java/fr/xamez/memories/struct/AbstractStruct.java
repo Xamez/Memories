@@ -1,4 +1,4 @@
-package fr.xamez.memories.arena;
+package fr.xamez.memories.struct;
 
 import fr.xamez.memories.Memories;
 import fr.xamez.memories.runnables.HitBoxRunnable;
@@ -54,6 +54,9 @@ public abstract class AbstractStruct {
         return blocks;
     }
 
+
+    // TODO MAY BE ADD A GLOW EFFECT WITH A SHULKER WHEN BLOCK ARE INVALID
+
     /**
      * Rules:
      *   <li>If the two blocks are the same and they are well oriented: +1</li>
@@ -103,7 +106,7 @@ public abstract class AbstractStruct {
                 }
     }
 
-    public void updateBlockList(){
+    public void updateBlockList() {
         Bukkit.getScheduler().runTaskAsynchronously(JavaPlugin.getPlugin(Memories.class), () -> setBlockList(getBlocks(this.firstPoint, this.secondPoint)));
     }
 

@@ -1,7 +1,7 @@
 package fr.xamez.memories.commands;
 
-import fr.xamez.memories.arena.Arena;
-import fr.xamez.memories.arena.Structure;
+import fr.xamez.memories.struct.Arena;
+import fr.xamez.memories.struct.Structure;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
@@ -18,7 +18,8 @@ public class MemoriesTAB implements TabCompleter {
     private final List<String> COMMANDS = new ArrayList<>(Arrays.asList("createarena", "deletearena", "editarena",
                                                                         "listarena", "createstructure", "deletestructure",
                                                                         "editstructure", "liststructure", "setspawn",
-                                                                        "setradius", "reload", "start", "stop"));
+                                                                        "setstructurespawn", "setradius", "reload",
+                                                                        "start", "stop"));
 
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
@@ -26,7 +27,7 @@ public class MemoriesTAB implements TabCompleter {
         if (args.length == 1) {
             StringUtil.copyPartialMatches(args[0], COMMANDS, completions);
             Collections.sort(completions);
-        } else if (args.length == 2){
+        } else if (args.length == 2) {
             if (args[0].equalsIgnoreCase("deletearena") || args[0].equalsIgnoreCase("editarena")) {
                 StringUtil.copyPartialMatches(args[1], Arena.ARENAS.stream().map(Arena::getName).collect(Collectors.toList()), completions);
             }

@@ -112,7 +112,7 @@ public class ItemBuilder {
      * @param lvl Level of enchantement
      * @return
      */
-    public ItemBuilder addEnchantements(Enchantment ench, int lvl){
+    public ItemBuilder addEnchantements(Enchantment ench, int lvl) {
         ItemMeta im = is.getItemMeta();
         assert im != null;
         im.addEnchant(ench, lvl, true);
@@ -125,7 +125,7 @@ public class ItemBuilder {
      * @param itemFlag ItemFlag to add
      * @return
      */
-    public ItemBuilder addItemFlag(ItemFlag itemFlag){
+    public ItemBuilder addItemFlag(ItemFlag itemFlag) {
         ItemMeta im = is.getItemMeta();
         assert im != null;
         im.addItemFlags(itemFlag);

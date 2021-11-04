@@ -1,7 +1,7 @@
 package fr.xamez.memories.utils;
 
-import fr.xamez.memories.arena.Arena;
-import fr.xamez.memories.arena.Structure;
+import fr.xamez.memories.struct.Arena;
+import fr.xamez.memories.struct.Structure;
 import org.bukkit.Location;
 
 import java.math.BigDecimal;
@@ -10,19 +10,19 @@ import java.util.Optional;
 
 public class Utils {
 
-    public static Optional<Arena> findArenaByName(String name){
+    public static Optional<Arena> findArenaByName(String name) {
         return Arena.ARENAS.stream()
                 .filter(arena -> arena.getName().equalsIgnoreCase(name))
                 .findFirst();
     }
 
-    public static Optional<Structure> findStructureByName(String name){
+    public static Optional<Structure> findStructureByName(String name) {
         return Structure.STRUCTURES.stream()
                 .filter(structure -> structure.getName().equalsIgnoreCase(name))
                 .findFirst();
     }
 
-    public static String getFormattedLocation(Location location){
+    public static String getFormattedLocation(Location location) {
         return "x: " + truncateDecimal(location.getX()) + ", " +
                 "y: " + truncateDecimal(location.getY()) + ", " +
                 "z: " + truncateDecimal(location.getZ());

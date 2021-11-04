@@ -5,7 +5,8 @@ public enum GameState {
     STARTING("§dDémarrage"),
     MEMORIZATION("§bMémorisation"),
     BUILDING("§aConstruction"),
-    WAITING("§7Attente");
+    WAITING("§7Attente"),
+    FINISHED("§cTerminé");
 
     private final String state;
 

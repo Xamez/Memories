@@ -1,8 +1,8 @@
 package fr.xamez.memories.commands;
 
 import fr.xamez.memories.Memories;
-import fr.xamez.memories.arena.Arena;
-import fr.xamez.memories.arena.Structure;
+import fr.xamez.memories.struct.Arena;
+import fr.xamez.memories.struct.Structure;
 import fr.xamez.memories.listeners.ArenaEditorListener;
 import fr.xamez.memories.runnables.HitBoxRunnable;
 import fr.xamez.memories.runnables.ScoreboardRunnable;
@@ -11,9 +11,7 @@ import fr.xamez.memories.utils.ItemBuilder;
 import fr.xamez.memories.utils.Pair;
 import fr.xamez.memories.utils.Utils;
 import org.bukkit.Bukkit;
-import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.WorldBorder;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -37,7 +35,7 @@ public class MemoriesCMD implements CommandExecutor {
                 sendHelp(p);
             } else {
                 String name = null;
-                if (args.length == 2){
+                if (args.length == 2) {
                     name = args[1];
                 }
                 switch (args[0]){
@@ -61,7 +59,7 @@ public class MemoriesCMD implements CommandExecutor {
                             p.sendMessage(Memories.PREFIX + "§cVous devez spécifié le nom d'une structure !");
                         } else if (Utils.findArenaByName(name).isEmpty() && Utils.findStructureByName(name).isEmpty() ) {
                             Structure.STRUCTURES.add(new Structure(name));
-                            p.sendMessage(Memories.PREFIX + "§eLa structure §a" + name + " §ea été correctement créé");
+                            p.sendMessage(Memories.PREFIX + "§eLa structure §a" + name + " §ea été correctement créé basé sur votre position");
                             if (ArenaEditorListener.EDITOR_MODE.containsKey(uuid)) {
                                 exitEditMode(ArenaEditorListener.EDITOR_MODE.get(uuid).getFirst().getName(), p);
                             }
@@ -118,7 +116,7 @@ public class MemoriesCMD implements CommandExecutor {
                             editStructure(name, p);
                     }
                     case "listarena" -> {
-                        if (Arena.ARENAS.isEmpty()){
+                        if (Arena.ARENAS.isEmpty()) {
                             p.sendMessage(Memories.PREFIX + "§eIl n'y a aucune arène !");
                         } else {
                             p.sendMessage(Memories.PREFIX + "§6» §eListe des arènes:");
@@ -134,20 +132,21 @@ public class MemoriesCMD implements CommandExecutor {
                         }
                     }
                     case "liststructure" -> {
-                        if (Structure.STRUCTURES.isEmpty()){
+                        if (Structure.STRUCTURES.isEmpty()) {
                             p.sendMessage(Memories.PREFIX + "§eIl n'y a aucune structure !");
                         } else {
                             p.sendMessage(Memories.PREFIX + "§6» §eListe des structures:");
                             int num = 1;
-                            for (Structure arena : Structure.STRUCTURES) {
-                                p.sendMessage("    §6" + num + ". §b" + arena.getName());
-                                p.sendMessage("         §7⚫ §fPremier coin: §b" + Utils.getFormattedLocation(arena.getFirstPoint()));
-                                p.sendMessage("         §7⚫ §fDeuxième coin §b" + Utils.getFormattedLocation(arena.getSecondPoint()));
-                                p.sendMessage("         §7⚫ §fNombre de blocs: §d" + arena.getSize());
+                            for (Structure structure : Structure.STRUCTURES) {
+                                p.sendMessage("    §6" + num + ". §b" + structure.getName());
+                                p.sendMessage("         §7⚫ §fPremier coin: §b" + Utils.getFormattedLocation(structure.getFirstPoint()));
+                                p.sendMessage("         §7⚫ §fDeuxième coin §b" + Utils.getFormattedLocation(structure.getSecondPoint()));
+                                p.sendMessage("         §7⚫ §fNombre de blocs: §d" + structure.getSize());
                                 num++;
                             }
                         }
                     }
+
                     case "setspawn" -> {
                         Memories.GAME.setSpawnLocation(p.getLocation());
                         FileUtils.saveConfig(false);
@@ -169,7 +168,7 @@ public class MemoriesCMD implements CommandExecutor {
                     }
                     case "reload" -> {
                         ScoreboardRunnable.BOARDS.clear();
-                        for (UUID pUUID : ArenaEditorListener.EDITOR_MODE.keySet()){
+                        for (UUID pUUID : ArenaEditorListener.EDITOR_MODE.keySet()) {
                             exitEditMode(ArenaEditorListener.EDITOR_MODE.get(pUUID).getFirst().getName(), Bukkit.getPlayer(pUUID));
                         }
                         Memories.GAME.setupAllPlayer();
@@ -179,7 +178,7 @@ public class MemoriesCMD implements CommandExecutor {
                         Memories.GAME.start();
                     }
                     case "stop" -> {
-                        // TODO
+                        Memories.GAME.forceStop();
                     }
                     case "compare" -> {
                         final Structure s = Structure.STRUCTURES.get(0);
@@ -188,14 +187,6 @@ public class MemoriesCMD implements CommandExecutor {
                         a.updateBlockList();
                         float percentage = s.compare(a);
                         p.sendMessage("§aPercentage: " + percentage);
-                    }
-                    case "spawn" -> {
-                        final JavaPlugin plugin = JavaPlugin.getPlugin(Memories.class);
-                        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> Structure.STRUCTURES.get(0).spawnStructure(p, p.getLocation()));
-                    }
-                    case "destroy" -> {
-                        final JavaPlugin plugin = JavaPlugin.getPlugin(Memories.class);
-                        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> Arena.ARENAS.get(0).destroyEffect(p));
                     }
                 }
             }
@@ -206,14 +197,14 @@ public class MemoriesCMD implements CommandExecutor {
     }
 
 
-    private void editArena(String name, Player p){
+    private void editArena(String name, Player p) {
         final UUID uuid = p.getUniqueId();
         final Optional<Arena> arena = Utils.findArenaByName(name);
         if (arena.isEmpty()) {
             p.sendMessage(Memories.PREFIX + "§cCette arène n'existe pas !");
             return;
         }
-        if (ArenaEditorListener.EDITOR_MODE.containsKey(uuid)){
+        if (ArenaEditorListener.EDITOR_MODE.containsKey(uuid)) {
             exitEditMode(name, p);
         } else {
             final Arena arenaCopy = arena.get().clone();
@@ -223,14 +214,14 @@ public class MemoriesCMD implements CommandExecutor {
         }
     }
 
-    private void editStructure(String name, Player p){
+    private void editStructure(String name, Player p) {
         final UUID uuid = p.getUniqueId();
         final Optional<Structure> structure = Utils.findStructureByName(name);
         if (structure.isEmpty()) {
             p.sendMessage(Memories.PREFIX + "§cCette structure n'existe pas !");
             return;
         }
-        if (ArenaEditorListener.EDITOR_MODE.containsKey(uuid)){
+        if (ArenaEditorListener.EDITOR_MODE.containsKey(uuid)) {
             exitEditMode(name, p);
         } else {
             final Structure structureCopy = structure.get().clone();
@@ -240,22 +231,18 @@ public class MemoriesCMD implements CommandExecutor {
         }
     }
 
-    public static void exitEditMode(String name, Player p){
+    public static void exitEditMode(String name, Player p) {
         p.getInventory().clear();
         ArenaEditorListener.EDITOR_MODE.remove(p.getUniqueId());
         removeHitBoxByName(name);
-        final Location location = Memories.GAME.getSpawnLocation();
-        final WorldBorder worldBorder = location.getWorld().getWorldBorder();
-        worldBorder.setCenter(location);
-        worldBorder.setSize(300); // TODO idk
         p.sendMessage(Memories.PREFIX + "§eVous venez de sortir du mode d'édition !");
     }
 
-    private static void removeHitBoxByName(String name){
+    private static void removeHitBoxByName(String name) {
         HitBoxRunnable.HIT_BOX.removeIf(struct -> struct.getName().equalsIgnoreCase(name));
     }
 
-    private void enableEditMode(Player p, boolean isArena){
+    private void enableEditMode(Player p, boolean isArena) {
         p.getInventory().clear();
         p.sendMessage(Memories.PREFIX + "§eVous venez de rentrer dans le mode d'édition !");
         final ItemStack barrier = new ItemBuilder(Material.BARRIER)
@@ -268,10 +255,8 @@ public class MemoriesCMD implements CommandExecutor {
                         "§8⚫ §7Clic gauche pour définir le premier point",
                         "§8⚫ §7Clic droit pour définir le deuxième point"))
                 .toItemStack();
-        if (!isArena)
-            p.getInventory().setItem(4, stick);
-        else {
-            p.getInventory().setItem(3, stick);
+        p.getInventory().setItem(3, stick);
+        if (isArena) {
             final ItemStack netherStar = new ItemBuilder(Material.NETHER_STAR)
                     .setName("§8» §dDéfinir le point de spawn de l'arène")
                     .toItemStack();
@@ -283,7 +268,7 @@ public class MemoriesCMD implements CommandExecutor {
         p.getInventory().setItem(8, slime);
     }
 
-    private void sendHelp(Player p){
+    private void sendHelp(Player p) {
         p.sendMessage("");
         p.sendMessage("§8⬛ §6/mb createarena/createstructure <nom>");
         p.sendMessage("     §e» Permet de créer une arène/structure");
@@ -293,10 +278,16 @@ public class MemoriesCMD implements CommandExecutor {
         p.sendMessage("     §e» Permet de rentrer en mode d'édition");
         p.sendMessage("§8⬛ §6/mb listarena/liststructure");
         p.sendMessage("     §e» Permet de voir la liste des arènes/structures");
+        p.sendMessage("§8⬛ §6/mb setspawn");
+        p.sendMessage("     §e» Permet de définir le spawn l'évènement");
+        p.sendMessage("§8⬛ §6/mb setradius");
+        p.sendMessage("     §e» Permet de définir le radius de la worldboarder");
         p.sendMessage("§8⬛ §6/mb start");
         p.sendMessage("     §e» Permet de démarrer l'évènement");
         p.sendMessage("§8⬛ §6/mb stop");
         p.sendMessage("     §e» Permet de forcer l'arrêt de l'évènement");
+        p.sendMessage("§8⬛ §6/mb reload");
+        p.sendMessage("     §e» Permet de reload la partie");
         p.sendMessage("");
     }
 }

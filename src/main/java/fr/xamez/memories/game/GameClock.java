@@ -19,26 +19,25 @@ public class GameClock extends BukkitRunnable {
     private final int initSeconds;
     private int seconds;
 
-    public GameClock(String name, int seconds){
+    public GameClock(String name, int seconds) {
         this.name = name;
         this.initSeconds = seconds;
         this.seconds = seconds;
         GAME_CLOCKS.put(name, this);
     }
 
-    public void start(){
+    public void start() {
         this.runTaskTimerAsynchronously(JavaPlugin.getPlugin(Memories.class), 0L, 20L);
     }
 
-    public void reset(){
-        if (!this.isCancelled()) {
-            this.seconds = initSeconds;
-        }
+    public void reset() {
+        try { this.cancel(); } catch (IllegalStateException ignored) {}
+        this.seconds = initSeconds;
     }
 
     @Override
-    public void run(){
-        for (Player p : Bukkit.getOnlinePlayers()){
+    public void run() {
+        for (Player p : Bukkit.getOnlinePlayers()) {
             if (!p.getGameMode().equals(GameMode.SPECTATOR)) {
                 p.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent("§6» §eTemps restant: §b" + getFormattedTime()));
                 final String text = GameState.STARTING.name().equals(this.name) ? "Démarrage de la partie" : "Phase suivante";
@@ -49,7 +48,7 @@ public class GameClock extends BukkitRunnable {
                 p.setExp((float) seconds / initSeconds);
             }
         }
-        if (this.seconds == 0){
+        if (this.seconds == 0) {
             final JavaPlugin plugin = JavaPlugin.getPlugin(Memories.class);
             plugin.getServer().getScheduler().runTask(plugin, () -> Memories.GAME.nextPhase());
             this.cancel();
@@ -57,7 +56,7 @@ public class GameClock extends BukkitRunnable {
         this.seconds--;
     }
 
-    public String getFormattedTime(){
+    public String getFormattedTime() {
         final int secs = this.seconds < 0 ? this.seconds - 1 : this.seconds;
         return String.format("%02d:%02d", (secs % 3600) / 60, secs % 60);
     }
