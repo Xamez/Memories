@@ -16,3 +16,8 @@
 5. Nombre de points
 6. 
 7. Ip du serveur
+
+
+### TODO
+
+Ajouter un moyen de casser les blocs posé par les joueurs rapidement

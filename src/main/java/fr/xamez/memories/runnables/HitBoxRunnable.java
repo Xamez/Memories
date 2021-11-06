@@ -20,8 +20,7 @@ public class HitBoxRunnable extends BukkitRunnable {
             if (struct.getFirstPoint() != AbstractStruct.DEFAULT_LOCATION && struct.getSecondPoint() != AbstractStruct.DEFAULT_LOCATION) {
                 struct.showHitBox(struct instanceof Arena ? Color.fromRGB(34, 242, 103) : Color.fromRGB(245, 79, 51));
             }
-            if (struct instanceof Arena) {
-                final Arena arena = (Arena) struct;
+            if (struct instanceof final Arena arena) {
                 final Location loc = arena.getSpawnPoint();
                 if (loc != AbstractStruct.DEFAULT_LOCATION)
                     for (double y = 0d; y < 2d; y += PARTICLE_DISTANCE) {

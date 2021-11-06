@@ -12,6 +12,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.WorldBorder;
+import org.bukkit.entity.FallingBlock;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -21,6 +22,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static fr.xamez.memories.Memories.GAME;
+
 
 public class Game {
 
@@ -28,29 +31,22 @@ public class Game {
     public final static HashMap<Player, HashMap<Arena, Float>> PLAYERS_RESULT = new HashMap<>();
 
     private GameState gameState;
-    private final GameClock starting;
-    private final GameClock memorizeClock;
-    private final GameClock buildClock;
-    private final GameClock waitClock;
-    private final GameClock finishClock;
+    private final GameClock starting = new GameClock(GameState.STARTING.name(), 5);
+    private final GameClock generationClock = new GameClock(GameState.MEMORIZATION.name(), 2);
+    private final GameClock memorizeClock = new GameClock(GameState.MEMORIZATION.name(), 20);
+    private final GameClock buildClock = new GameClock(GameState.BUILDING.name(), 40);
+    private final GameClock waitClock = new GameClock(GameState.WAITING.name(), 10);
+    private final GameClock finishClock = new GameClock(GameState.FINISHED.name(), 300);
     private final ArrayList<Structure> playedStructure = new ArrayList<>();
-    private Config config;
+    private final Config config;
+    private final int maxTurn;
+    private int turn;
+    private GameClock currentClock;
     private Structure currentStructure;
     private boolean canBuild;
     private boolean canJoin;
-    private int turn;
-    private int maxTurn;
 
     public Game() {
-        init();
-        this.starting = new GameClock(GameState.STARTING.name(), 5);
-        this.memorizeClock = new GameClock(GameState.MEMORIZATION.name(), 10);
-        this.buildClock = new GameClock(GameState.BUILDING.name(), 40);
-        this.waitClock = new GameClock(GameState.WAITING.name(), 10);
-        this.finishClock = new GameClock(GameState.FINISHED.name(), 300);
-    }
-
-    public void init() {
         FileUtils.createDefaultJsonFiles();
         this.config = FileUtils.loadConfig();
 
@@ -58,6 +54,9 @@ public class Game {
         Structure.STRUCTURES = FileUtils.loadStructures();
 
         this.gameState = GameState.WAITING;
+        this.currentClock = this.waitClock;
+
+        this.canBuild = false;
         this.turn = 0;
         this.maxTurn = Structure.STRUCTURES.size();
 
@@ -67,7 +66,7 @@ public class Game {
     }
 
     public void start() {
-        cancelClocks();
+        resetClocks();
         if (Bukkit.getOnlinePlayers().stream().filter(p -> p.getGameMode().equals(GameMode.SURVIVAL)).count() > Arena.ARENAS.size()) {
             Bukkit.broadcastMessage(Memories.PREFIX + "§cLa partie ne peut pas commencer car il manque des arènes");
             return;
@@ -78,14 +77,15 @@ public class Game {
         }
         this.canJoin = false;
         this.gameState = GameState.STARTING;
-        this.starting.start();
+        this.currentClock = this.starting;
+        GameClock.CAN_START = true;
     }
 
     public void forceStop() {
         resetClocks();
-        cancelClocks();
         this.gameState = GameState.FINISHED;
-        finishClock.start();
+        this.currentClock = this.finishClock;
+        GameClock.CAN_START = true;
         Bukkit.broadcastMessage(Memories.PREFIX + "§cLa partie a été stoppée de force");
         for (Player p : Bukkit.getOnlinePlayers()) {
             p.getInventory().clear();
@@ -93,56 +93,61 @@ public class Game {
         }
     }
 
-    // We didn't cancel the finishClock
-    private void cancelClocks() {
-        try {
-            this.memorizeClock.cancel();
-            this.waitClock.cancel();
-            this.buildClock.cancel();
-        } catch (Exception ignored) {}
-    }
-
     public void nextPhase() {
+        this.currentClock.cancel();
         switch (this.gameState){
             case STARTING -> {
+                this.gameState = GameState.GENERATION;
+                this.currentClock = this.generationClock;
+                startGenerationPhase();
+            }
+            case GENERATION -> {
                 this.gameState = GameState.MEMORIZATION;
-                cancelClocks();
+                this.currentClock = this.memorizeClock;
                 startMemorizationPhase();
             }
             case MEMORIZATION -> {
                 this.gameState = GameState.BUILDING;
-                cancelClocks();
+                this.currentClock = this.buildClock;
                 startBuildingPhase();
             }
             case BUILDING -> {
                 this.gameState = GameState.WAITING;
-                cancelClocks();
+                this.currentClock = this.waitClock;
                 startWaitingPhase();
             }
             case WAITING -> {
-                cancelClocks();
-                if (this.turn <= this.maxTurn) {
+                resetClocks();
+                if (this.turn < this.maxTurn) {
                     this.gameState = GameState.MEMORIZATION;
-                    resetClocks();
+                    this.currentClock = this.memorizeClock;
                     startMemorizationPhase();
                 } else {
                     this.gameState = GameState.FINISHED;
+                    this.currentClock = this.finishClock;
+                    this.canJoin = true;
                     for (Player p : Bukkit.getOnlinePlayers()) {
                         p.getInventory().clear();
                         p.teleport(getConfig().getSpawnLocation());
                     }
                     // DISPLAY GLOBAL RESULT
                     Bukkit.broadcastMessage(Memories.PREFIX + "§aLes résultats sont :");
-                    AtomicInteger i = new AtomicInteger();
-                    PLAYERS_RESULT.entrySet().stream().sorted(Map.Entry.comparingByValue(Collections.reverseOrder()))
+                    AtomicInteger i = new AtomicInteger(1);
+                    final Map<Player, Float> scores = new HashMap<>();
+                    for (Player player : PLAYERS_RESULT.keySet()) {
+                        float pScore = 0;
+                        for (Map.Entry<Arena, Float> entry : PLAYERS_RESULT.get(player).entrySet())
+                            pScore += entry.getValue();
+                        scores.put(player, pScore / PLAYERS_RESULT.get(player).size());
+                    }
+                    scores.entrySet().stream().sorted(Map.Entry.comparingByValue(Collections.reverseOrder()))
                             .forEach(e -> {
-                                Bukkit.broadcastMessage("  §f" + i + "§7. §e" + e.getKey().getName() + " §7: §b" + e.getValue());
+                                Bukkit.broadcastMessage("  §f" + i + "§7. §e" + e.getKey().getName() + " §7- §b" + e.getValue() + "% en moyenne");
                                 i.getAndIncrement();
                             });
                             //.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e1, LinkedHashMap::new));
                     Bukkit.broadcastMessage(Memories.PREFIX + "§eEvent §aterminé§e, merci à tous !!");
-                    Bukkit.broadcastMessage(Memories.PREFIX + "§eLe serveur va s'éteindre dans " + this.finishClock.getFormattedTime());
-                    this.finishClock.start();
+                    Bukkit.broadcastMessage(Memories.PREFIX + "§eLe serveur va s'éteindre dans §b" + this.currentClock.getFormattedTime());
                 }
             }
             case FINISHED -> {
@@ -151,23 +156,28 @@ public class Game {
                 Bukkit.getServer().shutdown();
             }
         }
+        // The code below is used to sync the game clock runnable with the scoreboard runnable
+        GameClock.CAN_START = true;
     }
 
     private void resetClocks() {
-        this.memorizeClock.reset();
-        this.buildClock.reset();
-        this.waitClock.reset();
-        this.finishClock.reset();
+        try {
+            this.generationClock.reset();
+            this.memorizeClock.reset();
+            this.buildClock.reset();
+            this.waitClock.reset();
+            this.finishClock.reset();
+            this.finishClock.reset();
+        } catch (Exception ignored) {}
     }
 
-    private void startMemorizationPhase() {
+    private void startGenerationPhase() {
+
         int i = 0;
         for (Player p : Bukkit.getOnlinePlayers()) {
             if (!p.getGameMode().equals(GameMode.SPECTATOR)) {
                 final Arena arena = Arena.ARENAS.get(i);
                 PLAYERS_ARENA.put(p, arena);
-                p.teleport(arena.getSpawnPoint());
-                p.sendMessage(Memories.PREFIX + "§eVous avez été téléporté à l'arène §b" + arena.getName()); // fake teleport to their arena
                 i++;
             }
         }
@@ -181,26 +191,38 @@ public class Game {
                 break;
             }
         }
-        for (Map.Entry<Player, Arena> entry : PLAYERS_ARENA.entrySet()) {
-            currentStructure.spawnStructure(entry.getKey(), entry.getValue().getFirstPoint().getBlock().getLocation());
-            System.out.println(entry.getKey() + " -> " + entry.getValue().getFirstPoint().getBlock().getLocation());
-        }
 
-        this.memorizeClock.start();
+        for (Arena arena : PLAYERS_ARENA.values())
+            currentStructure.spawnStructure(arena.getFirstPoint().getBlock().getLocation());
+
+        Bukkit.getScheduler().runTaskLater(JavaPlugin.getPlugin(Memories.class), () -> {
+            for (FallingBlock fallingBlock : Structure.FALLING_BLOCKS_STRUCTURE)
+                fallingBlock.teleport(fallingBlock.getLocation().clone().add(0, 20, 0));
+        } , 60L);
+    }
+
+    private void startMemorizationPhase() {
+        for (Map.Entry<Player, Arena> entry : PLAYERS_ARENA.entrySet()) {
+            final Player p = entry.getKey();
+            p.setAllowFlight(true);
+            p.setFlying(true);
+            p.teleport(entry.getValue().getSpawnPoint());
+            p.sendMessage(Memories.PREFIX + "§eVous avez été téléporté à l'arène §b" + entry.getValue().getName());
+        }
     }
 
     private void startBuildingPhase() {
         this.canBuild = true;
-        this.buildClock.start();
         for (Map.Entry<Player, Arena> entry : PLAYERS_ARENA.entrySet()) {
-            entry.getValue().destroyEffect(entry.getKey());
+            final Player p = entry.getKey();
+            p.setAllowFlight(false);
+            p.setFlying(false);
+            entry.getValue().destroyEffect(p);
         }
     }
 
-    // TODO EMLPECHER LE BUILD
-    // TODO LINK SB ACTION BAR
-
     private void startWaitingPhase() {
+        this.canBuild = false;
         Bukkit.getScheduler().runTaskAsynchronously(JavaPlugin.getPlugin(Memories.class), () -> {
             for (Map.Entry<Player, Arena> entry : PLAYERS_ARENA.entrySet()) {
                 final Player p = entry.getKey();
@@ -211,11 +233,9 @@ public class Game {
                 p.sendMessage(Memories.PREFIX + "§eVous avez fait un score de §b" + result + "§7/§b100");
             }
         });
-        for (Arena arena : Arena.ARENAS){
+        for (Arena arena : Arena.ARENAS)
             arena.clearArena();
-        }
         this.turn++;
-        this.waitClock.start();
     }
 
     public void setupAllPlayer() {
@@ -244,7 +264,7 @@ public class Game {
         board.updateLines(
                 "",
                 "§6» §eÉtat du jeu: " + this.gameState.getState(),
-                "§6» §eTemps restant: §b" + GameClock.GAME_CLOCKS.get(this.gameState.name()).getFormattedTime(),
+                "§6» §eTemps restant: §b" + GAME.getCurrentGameClock().getFormattedTime(),
                 "§6» §eArène: §7Non défini",
                 "",
                 "     §aplay.capsurgrimtown.fr"
@@ -300,5 +320,9 @@ public class Game {
 
     public Config getConfig() {
         return config;
+    }
+
+    public GameClock getCurrentGameClock() {
+        return this.currentClock;
     }
 }

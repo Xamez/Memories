@@ -57,31 +57,47 @@ public abstract class AbstractStruct {
 
     // TODO MAY BE ADD A GLOW EFFECT WITH A SHULKER WHEN BLOCK ARE INVALID
 
+
+    // TODO : FIX IT - REWORK THIS METHOD
     /**
+     * This method is run asynchronously
+     *
      * Rules:
-     *   <li>If the two blocks are the same and they are well oriented: +1</li>
-     *   <li>If the two blocks are the same but misaligned or in a different state: +0.5</li>
-     *   <li>If the two blocks are not the same: +0</li>
-     *   <li>If all blocks are not placed: - quantity of block unplaced * 1.5</li>
+     * <ul>
+     * <li>If the two blocks are the same and they are well oriented: +1</li>
+     * <li>If the two blocks are the same but misaligned or in a different state: +0.5</li>
+     * <li>If the two blocks are not the same: +0</li>
+     * </ul>
      * @param otherStructure The other structure that we will compare
      * @return A percentage that defines how many percent the two structures are the same
      */
     public float compare(AbstractStruct otherStructure) {
         final ArrayList<Block> otherBlockList = otherStructure.getBlockList();
-        if (this.blockList.size() != otherBlockList.size()) return -1;
+        setBlockList(getBlocks(this.firstPoint, this.secondPoint));
+        if (this.blockList.size() != otherBlockList.size()) {
+            Bukkit.broadcastMessage(Memories.PREFIX + "§cAttention, une structure a mal été défini, contactez un administrateur (taille des structures différentes)");
+            return -1;
+        }
+        int realPlacedBlocks = 0;
         float matchPercentage = 0;
+        System.out.println("this.blockList.size() = " + this.blockList.size());
         for (int i = 0; i < this.blockList.size(); i++) {
             final Block block = blockList.get(i);
             final Block otherBlock = otherBlockList.get(i);
-            if (block.getBlockData().matches(otherBlock.getBlockData())) { // same block and well oriented
-                matchPercentage++;
-            } else if (block.getType().equals(otherBlock.getType())) // same block but misaligned or in a different state
-                matchPercentage += 0.5;
+            if (!block.isEmpty()) {
+                realPlacedBlocks++;
+                if (otherBlock.isEmpty()) continue;
+                if (block.getBlockData().matches(otherBlock.getBlockData())) // same block and well oriented / same state
+                    matchPercentage++;
+                else if (block.getType().equals(otherBlock.getType())) // same block but misaligned or in a different state
+                    matchPercentage += 0.5;
+            }
         }
-        final int realBlocks = (int) (this.blockList.size() - this.blockList.stream().filter(b -> b.getType().equals(Material.AIR)).count());
-        final int otherRealBlocks = (int) (this.blockList.size() - otherBlockList.stream().filter(b -> b.getType().equals(Material.AIR)).count());
-        matchPercentage -= Math.max(otherRealBlocks - realBlocks, 0) * 1.5;
-        return Math.max(0, Utils.truncateDecimal(matchPercentage / this.blockList.size() * 100).floatValue());
+        System.out.println("realPlacedBlocks: " + realPlacedBlocks);
+        System.out.println("matchPercentage: " + matchPercentage);
+        System.out.println("100 * matchPercentage / realPlacedBlocks = " + 100 * matchPercentage / realPlacedBlocks);
+        System.out.println("Utils.truncateDecimal(100 * matchPercentage / realPlacedBlocks).floatValue() = " + Utils.truncateDecimal(100 * matchPercentage / realPlacedBlocks).floatValue());
+        return Math.max(0, Utils.truncateDecimal(100 * matchPercentage / realPlacedBlocks).floatValue());
     }
 
     public void showHitBox(Color color){

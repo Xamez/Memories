@@ -1,21 +1,11 @@
 package fr.xamez.memories.struct;
 
 import fr.xamez.memories.Memories;
-import net.minecraft.core.BlockPosition;
-import net.minecraft.network.protocol.game.PacketPlayOutEntity;
-import net.minecraft.network.protocol.game.PacketPlayOutEntityTeleport;
-import net.minecraft.network.protocol.game.PacketPlayOutSpawnEntity;
-import net.minecraft.network.protocol.game.PacketPlayOutSpawnEntityLiving;
-import net.minecraft.server.network.PlayerConnection;
-import net.minecraft.world.entity.item.EntityFallingBlock;
-import net.minecraft.world.level.block.state.IBlockData;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.Block;
-import org.bukkit.craftbukkit.v1_17_R1.CraftWorld;
-import org.bukkit.craftbukkit.v1_17_R1.entity.CraftPlayer;
 import org.bukkit.entity.FallingBlock;
-import org.bukkit.entity.Player;
+import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
 
@@ -24,7 +14,7 @@ public class Structure extends AbstractStruct implements Cloneable {
 
     public static ArrayList<Structure> STRUCTURES = new ArrayList<>();
 
-    public static ArrayList<Integer> FALLING_BLOCKS_STRUCTURE = new ArrayList<>();
+    public static ArrayList<FallingBlock> FALLING_BLOCKS_STRUCTURE = new ArrayList<>();
 
     public Structure(String name) {
         super(name);
@@ -35,9 +25,7 @@ public class Structure extends AbstractStruct implements Cloneable {
      * Falling blocks will be paste instead of normal block to avoid cheating
      * @param location The location where the structure will be paste
      */
-    public void spawnStructure(Player p, Location location) {
-
-        final ArrayList<Block> structureBlocks = new ArrayList<>();
+    public void spawnStructure(Location location) {
 
         int topBlockX = Math.max(firstPoint.getBlockX(), secondPoint.getBlockX());
         int bottomBlockX = Math.min(firstPoint.getBlockX(), secondPoint.getBlockX());
@@ -53,38 +41,26 @@ public class Structure extends AbstractStruct implements Cloneable {
         final int baseY = location.getBlockY();
         final int baseZ = location.getBlockZ();
 
-        final PlayerConnection playerConnection = ((CraftPlayer) p).getHandle().b;
-
-        for (int x = bottomBlockX; x <= topBlockX; x++) {
-            final int newX = baseX + (x - bottomBlockX);
-            for (int z = bottomBlockZ; z <= topBlockZ; z++) {
-                final int newZ = baseZ + (z - bottomBlockZ);
-                for (int y = bottomBlockY; y <= topBlockY; y++) {
-                    final int newY = baseY + (y - bottomBlockY);
+        for (int y = bottomBlockY; y <= topBlockY; y++) {
+            final int newY = baseY + (y - bottomBlockY);
+            for (int x = bottomBlockX; x <= topBlockX; x++) {
+                final int newX = baseX + (x - bottomBlockX);
+                for (int z = bottomBlockZ; z <= topBlockZ; z++) {
+                    final int newZ = baseZ + (z - bottomBlockZ);
 
                     final Block originBlock = world.getBlockAt(x, y, z);
-                    final Location newLocation = new Location(world, newX, newY, newZ);
+                    if (originBlock.isEmpty()) continue;
 
-                    /*final FallingBlock fallingBlock = world.spawnFallingBlock(newLocation.getBlock().getLocation().add(0.5, 0, 0.5), originBlock.getBlockData());
+                    final Location newLocation = new Location(world, newX, newY - 20, newZ);
+                    final FallingBlock fallingBlock = world.spawnFallingBlock(newLocation.getBlock().getLocation().add(0.5, 0, 0.5), originBlock.getBlockData());
                     fallingBlock.setGravity(false);
-                    fallingBlock.setDropItem(false);*/
+                    fallingBlock.setDropItem(false);
+                    fallingBlock.setVelocity(new Vector(0, 0, 0));
 
-                    // TODO : fix this
-                    final CraftWorld craftWorld = (CraftWorld) world;
-                    final IBlockData blockData = craftWorld.getHandle().getType(new BlockPosition(x, y, z));
-                    final EntityFallingBlock fallingBlock = new EntityFallingBlock(craftWorld.getHandle(), newLocation.getBlock().getX() + 0.5, newLocation.getBlock().getY(), newLocation.getBlock().getZ() + 0.5, blockData);
-                    fallingBlock.setLocation(newLocation.getX() + 0.5, newLocation.getY(), newLocation.getZ() + 0.5, 0, 0);
-                    fallingBlock.setNoGravity(true);
-                    fallingBlock.setInvulnerable(true);
-                    final PacketPlayOutSpawnEntity fallingBlockPacket = new PacketPlayOutSpawnEntity(fallingBlock);
-                    playerConnection.sendPacket(fallingBlockPacket);
-
-                    structureBlocks.add(originBlock);
-                    FALLING_BLOCKS_STRUCTURE.add(fallingBlock.getId());
+                    FALLING_BLOCKS_STRUCTURE.add(fallingBlock);
                 }
             }
         }
-        setBlockList(structureBlocks);
     }
 
     @Override

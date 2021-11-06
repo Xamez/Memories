@@ -1,6 +1,7 @@
 package fr.xamez.memories.commands;
 
 import fr.xamez.memories.Memories;
+import fr.xamez.memories.game.Game;
 import fr.xamez.memories.struct.Arena;
 import fr.xamez.memories.struct.Structure;
 import fr.xamez.memories.listeners.ArenaEditorListener;
@@ -172,7 +173,7 @@ public class MemoriesCMD implements CommandExecutor {
                             exitEditMode(ArenaEditorListener.EDITOR_MODE.get(pUUID).getFirst().getName(), Bukkit.getPlayer(pUUID));
                         }
                         Memories.GAME.setupAllPlayer();
-                        Memories.GAME.init();
+                        Memories.GAME = new Game();
                     }
                     case "start" -> {
                         Memories.GAME.start();
@@ -183,7 +184,6 @@ public class MemoriesCMD implements CommandExecutor {
                     case "compare" -> {
                         final Structure s = Structure.STRUCTURES.get(0);
                         final Arena a = Arena.ARENAS.get(0);
-                        s.updateBlockList();
                         a.updateBlockList();
                         float percentage = s.compare(a);
                         p.sendMessage("§aPercentage: " + percentage);

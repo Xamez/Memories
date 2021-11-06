@@ -13,7 +13,7 @@ import java.util.HashMap;
 
 public class GameClock extends BukkitRunnable {
 
-    public static final HashMap<String, GameClock> GAME_CLOCKS = new HashMap<>();
+    public static boolean CAN_START = false;
 
     private final String name;
     private final int initSeconds;
@@ -23,7 +23,6 @@ public class GameClock extends BukkitRunnable {
         this.name = name;
         this.initSeconds = seconds;
         this.seconds = seconds;
-        GAME_CLOCKS.put(name, this);
     }
 
     public void start() {
@@ -40,7 +39,7 @@ public class GameClock extends BukkitRunnable {
         for (Player p : Bukkit.getOnlinePlayers()) {
             if (!p.getGameMode().equals(GameMode.SPECTATOR)) {
                 p.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent("§6» §eTemps restant: §b" + getFormattedTime()));
-                final String text = GameState.STARTING.name().equals(this.name) ? "Démarrage de la partie" : "Phase suivante";
+                final String text = GameState.STARTING.name().equals(this.name) ? "Démarrage de la partie" : "Prochaine phase";
                 if (seconds == 30 || seconds == 20 || seconds == 10 || seconds <= 5)
                     p.sendTitle("§6" + text, "§eDans §b" + seconds + " secondes", 0, 25, 0);
                 p.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent("§6» §e" + text + " dans §b" + seconds + " secondes"));
@@ -58,7 +57,7 @@ public class GameClock extends BukkitRunnable {
 
     public String getFormattedTime() {
         final int secs = this.seconds < 0 ? this.seconds - 1 : this.seconds;
-        return String.format("%02d:%02d", (secs % 3600) / 60, secs % 60);
+        return String.format("%02d:%02d", (secs % 3600) / 60, Math.max(secs % 60, 0));
     }
 
 }

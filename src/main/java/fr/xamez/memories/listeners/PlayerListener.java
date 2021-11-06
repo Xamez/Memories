@@ -2,6 +2,7 @@ package fr.xamez.memories.listeners;
 
 import fr.mrmicky.fastboard.FastBoard;
 import fr.xamez.memories.Memories;
+import fr.xamez.memories.game.GameClock;
 import fr.xamez.memories.struct.AbstractStruct;
 import fr.xamez.memories.commands.MemoriesCMD;
 import fr.xamez.memories.runnables.ScoreboardRunnable;
@@ -11,6 +12,8 @@ import org.bukkit.WorldBorder;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
@@ -47,6 +50,16 @@ public class PlayerListener implements Listener {
         final WorldBorder worldBorder = e.getPlayer().getWorld().getWorldBorder();
         if (!worldBorder.isInside(e.getPlayer().getLocation()))
             e.getPlayer().teleport(Memories.GAME.getConfig().getSpawnLocation());
+    }
+
+    @EventHandler
+    public void onPlace(BlockPlaceEvent e){
+        if (!Memories.GAME.canBuild() && !e.getPlayer().isOp()) e.setCancelled(true);
+    }
+
+    @EventHandler
+    public void onPlace(BlockBreakEvent e){
+        if (!Memories.GAME.canBuild() && !e.getPlayer().isOp()) e.setCancelled(true);
     }
 
 }

@@ -3,6 +3,7 @@ package fr.xamez.memories.game;
 public enum GameState {
 
     STARTING("§dDémarrage"),
+    GENERATION("§6Génération"),
     MEMORIZATION("§bMémorisation"),
     BUILDING("§aConstruction"),
     WAITING("§7Attente"),

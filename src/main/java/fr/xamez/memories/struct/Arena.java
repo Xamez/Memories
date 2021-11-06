@@ -1,13 +1,13 @@
 package fr.xamez.memories.struct;
 
 import fr.xamez.memories.Memories;
-import net.minecraft.network.protocol.game.PacketPlayOutEntityDestroy;
 import net.minecraft.network.protocol.game.PacketPlayOutNamedSoundEffect;
 import net.minecraft.server.network.PlayerConnection;
 import net.minecraft.sounds.SoundCategory;
-import net.minecraft.sounds.SoundEffect;
 import net.minecraft.sounds.SoundEffects;
-import org.bukkit.*;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.type.Slab;
 import org.bukkit.craftbukkit.v1_17_R1.entity.CraftPlayer;
@@ -42,10 +42,8 @@ public class Arena extends AbstractStruct implements Cloneable {
         final PacketPlayOutNamedSoundEffect playerSoundPacket = new PacketPlayOutNamedSoundEffect(SoundEffects.sr, SoundCategory.e, p.getLocation().getX(), p.getLocation().getY(), p.getLocation().getZ(), 1, 1);
         playerConnection.sendPacket(playerSoundPacket);
 
-        for (int id : Structure.FALLING_BLOCKS_STRUCTURE) {
-            PacketPlayOutEntityDestroy entityDestroyPacket = new PacketPlayOutEntityDestroy(id);
-            playerConnection.sendPacket(entityDestroyPacket);
-        }
+        for (FallingBlock fallingBlock : Structure.FALLING_BLOCKS_STRUCTURE)
+            fallingBlock.remove();
         Structure.FALLING_BLOCKS_STRUCTURE.clear();
     }
 

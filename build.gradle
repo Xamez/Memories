@@ -20,5 +20,5 @@ dependencies {
 }
 
 shadowJar {
-    relocate 'fr.mrmicky.fastboard', "${group}.utils"
+    relocate 'fr.mrmicky.fastboard', "fr.xamez.memories.utils"
 }
