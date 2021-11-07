@@ -28,12 +28,11 @@ import java.util.WeakHashMap;
 
 public class PlayerListener implements Listener {
 
-    private final WeakHashMap<Player, ArrayList<Location>> PLAYERS_BLOCKS = new WeakHashMap<>();
+    public static final WeakHashMap<Player, ArrayList<Location>> PLAYERS_BLOCKS = new WeakHashMap<>();
 
     @EventHandler
     public void playerJoin(PlayerJoinEvent e) {
         Memories.GAME.setupPlayer(e.getPlayer());
-        PLAYERS_BLOCKS.put(e.getPlayer(), new ArrayList<>());
         if (!Memories.GAME.canJoin())
             e.getPlayer().setGameMode(GameMode.SPECTATOR);
     }

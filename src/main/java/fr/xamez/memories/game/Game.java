@@ -23,6 +23,7 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static fr.xamez.memories.Memories.GAME;
+import static fr.xamez.memories.listeners.PlayerListener.PLAYERS_BLOCKS;
 
 
 public class Game {
@@ -161,14 +162,12 @@ public class Game {
     }
 
     private void resetClocks() {
-        try {
-            this.startingClock.reset();
-            this.generationClock.reset();
-            this.memorizeClock.reset();
-            this.buildClock.reset();
-            this.waitClock.reset();
-            this.finishClock.reset();
-        } catch (Exception ignored) {}
+        this.startingClock.reset();
+        this.generationClock.reset();
+        this.memorizeClock.reset();
+        this.buildClock.reset();
+        this.waitClock.reset();
+        this.finishClock.reset();
     }
 
     private void startGenerationPhase() {
@@ -243,6 +242,7 @@ public class Game {
     public void setupAllPlayer() {
         for (Player p : Bukkit.getOnlinePlayers()) {
             PLAYERS_RESULT.put(p, new HashMap<>());
+            PLAYERS_BLOCKS.put(p, new ArrayList<>());
             setupPlayer(p);
         }
     }

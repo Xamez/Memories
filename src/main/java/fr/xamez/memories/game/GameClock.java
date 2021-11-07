@@ -15,22 +15,27 @@ public class GameClock extends BukkitRunnable {
 
     public static boolean CAN_START = false;
 
+    private boolean isStart;
+
     private final String name;
     private final int initSeconds;
     private int seconds;
 
     public GameClock(String name, int seconds) {
+        this.isStart = false;
         this.name = name;
         this.initSeconds = seconds;
         this.seconds = seconds;
     }
 
     public void start() {
+        this.isStart = true;
         this.runTaskTimerAsynchronously(JavaPlugin.getPlugin(Memories.class), 0L, 20L);
     }
 
     public void reset() {
-        try { this.cancel(); } catch (IllegalStateException ignored) {}
+        if (isStart) this.cancel();
+        this.isStart = false;
         this.seconds = initSeconds;
     }
 
@@ -50,6 +55,7 @@ public class GameClock extends BukkitRunnable {
         if (this.seconds == 0) {
             final JavaPlugin plugin = JavaPlugin.getPlugin(Memories.class);
             plugin.getServer().getScheduler().runTask(plugin, () -> Memories.GAME.nextPhase());
+            this.isStart = false;
             this.cancel();
         }
         this.seconds--;
