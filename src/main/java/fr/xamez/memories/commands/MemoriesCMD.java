@@ -181,13 +181,6 @@ public class MemoriesCMD implements CommandExecutor {
                     case "stop" -> {
                         Memories.GAME.forceStop();
                     }
-                    case "compare" -> {
-                        final Structure s = Structure.STRUCTURES.get(0);
-                        final Arena a = Arena.ARENAS.get(0);
-                        a.updateBlockList();
-                        float percentage = s.compare(a);
-                        p.sendMessage("§aPercentage: " + percentage);
-                    }
                 }
             }
         } else {
@@ -270,23 +263,23 @@ public class MemoriesCMD implements CommandExecutor {
 
     private void sendHelp(Player p) {
         p.sendMessage("");
-        p.sendMessage("§8⬛ §6/mb createarena/createstructure <nom>");
+        p.sendMessage("§8⬛ §6/memories createarena/createstructure <nom>");
         p.sendMessage("     §e» Permet de créer une arène/structure");
-        p.sendMessage("§8⬛ §6/mb deletearena/deletestructure <nom>");
+        p.sendMessage("§8⬛ §6/memories deletearena/deletestructure <nom>");
         p.sendMessage("     §e» Permet de supprimer une arène/structure");
-        p.sendMessage("§8⬛ §6/mb editarena/editstructure <nom>");
+        p.sendMessage("§8⬛ §6/memories editarena/editstructure <nom>");
         p.sendMessage("     §e» Permet de rentrer en mode d'édition");
-        p.sendMessage("§8⬛ §6/mb listarena/liststructure");
+        p.sendMessage("§8⬛ §6/memories listarena/liststructure");
         p.sendMessage("     §e» Permet de voir la liste des arènes/structures");
-        p.sendMessage("§8⬛ §6/mb setspawn");
+        p.sendMessage("§8⬛ §6/memories setspawn");
         p.sendMessage("     §e» Permet de définir le spawn l'évènement");
-        p.sendMessage("§8⬛ §6/mb setradius");
+        p.sendMessage("§8⬛ §6/memories setradius");
         p.sendMessage("     §e» Permet de définir le radius de la worldboarder");
-        p.sendMessage("§8⬛ §6/mb start");
+        p.sendMessage("§8⬛ §6/memories start");
         p.sendMessage("     §e» Permet de démarrer l'évènement");
-        p.sendMessage("§8⬛ §6/mb stop");
+        p.sendMessage("§8⬛ §6/memories stop");
         p.sendMessage("     §e» Permet de forcer l'arrêt de l'évènement");
-        p.sendMessage("§8⬛ §6/mb reload");
+        p.sendMessage("§8⬛ §6/memories reload");
         p.sendMessage("     §e» Permet de reload la partie");
         p.sendMessage("");
     }
