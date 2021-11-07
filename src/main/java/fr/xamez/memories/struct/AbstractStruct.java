@@ -70,7 +70,7 @@ public abstract class AbstractStruct {
      * @param otherStructure The other structure that we will compare
      * @return A percentage that defines how many percent the two structures are the same
      */
-    public float compare(AbstractStruct otherStructure) {
+    public int compare(AbstractStruct otherStructure) {
         final ArrayList<Block> otherBlockList = otherStructure.getBlockList();
         setBlockList(getBlocks(this.firstPoint, this.secondPoint));
         if (this.blockList.size() != otherBlockList.size()) {
@@ -93,7 +93,7 @@ public abstract class AbstractStruct {
             }
         }
         matchPercentage -= (realBlocks - placedBlocks) * 1.5;
-        return Math.max(0, Utils.truncateDecimal(100 * matchPercentage / realBlocks).floatValue());
+        return (int) Math.max(0, Utils.truncateDecimal(100 * matchPercentage / realBlocks).floatValue());
     }
 
     public void showHitBox(Color color){

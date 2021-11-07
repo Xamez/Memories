@@ -28,7 +28,7 @@ import static fr.xamez.memories.Memories.GAME;
 public class Game {
 
     public final static HashMap<Player, Arena> PLAYERS_ARENA = new HashMap<>();
-    public final static HashMap<Player, HashMap<Arena, Float>> PLAYERS_RESULT = new HashMap<>();
+    public final static HashMap<Player, HashMap<Arena, Integer>> PLAYERS_RESULT = new HashMap<>();
 
     private GameState gameState;
     private final GameClock startingClock = new GameClock(GameState.STARTING.name(), 5);
@@ -135,10 +135,10 @@ public class Game {
                     AtomicInteger i = new AtomicInteger(1);
                     final Map<Player, Integer> scores = new HashMap<>();
                     for (Player player : PLAYERS_RESULT.keySet()) {
-                        float pScore = 0;
-                        for (Map.Entry<Arena, Float> entry : PLAYERS_RESULT.get(player).entrySet())
+                        int pScore = 0;
+                        for (Map.Entry<Arena, Integer> entry : PLAYERS_RESULT.get(player).entrySet())
                             pScore += entry.getValue();
-                        scores.put(player, (int) (pScore / PLAYERS_RESULT.get(player).size()));
+                        scores.put(player, pScore / PLAYERS_RESULT.get(player).size());
                     }
                     scores.entrySet().stream().sorted(Map.Entry.comparingByValue(Collections.reverseOrder()))
                             .forEach(e -> {
@@ -227,7 +227,7 @@ public class Game {
             for (Map.Entry<Player, Arena> entry : PLAYERS_ARENA.entrySet()) {
                 final Player p = entry.getKey();
                 final Arena arena = entry.getValue();
-                float result = arena.compare(currentStructure);
+                int result = arena.compare(currentStructure);
                 PLAYERS_RESULT.get(p).put(arena, result);
                 p.getInventory().clear();
                 p.sendMessage(Memories.PREFIX + "§eVous avez fait un score de §b" + result + "§7/§b100");
