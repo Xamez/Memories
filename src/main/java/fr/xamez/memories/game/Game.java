@@ -31,10 +31,10 @@ public class Game {
     public final static HashMap<Player, HashMap<Arena, Float>> PLAYERS_RESULT = new HashMap<>();
 
     private GameState gameState;
-    private final GameClock starting = new GameClock(GameState.STARTING.name(), 5);
+    private final GameClock startingClock = new GameClock(GameState.STARTING.name(), 5);
     private final GameClock generationClock = new GameClock(GameState.MEMORIZATION.name(), 2);
-    private final GameClock memorizeClock = new GameClock(GameState.MEMORIZATION.name(), 20);
-    private final GameClock buildClock = new GameClock(GameState.BUILDING.name(), 40);
+    private final GameClock memorizeClock = new GameClock(GameState.MEMORIZATION.name(), 10);
+    private final GameClock buildClock = new GameClock(GameState.BUILDING.name(), 20);
     private final GameClock waitClock = new GameClock(GameState.WAITING.name(), 10);
     private final GameClock finishClock = new GameClock(GameState.FINISHED.name(), 300);
     private final ArrayList<Structure> playedStructure = new ArrayList<>();
@@ -77,7 +77,7 @@ public class Game {
         }
         this.canJoin = false;
         this.gameState = GameState.STARTING;
-        this.currentClock = this.starting;
+        this.currentClock = this.startingClock;
         GameClock.CAN_START = true;
     }
 
@@ -133,12 +133,12 @@ public class Game {
                     // DISPLAY GLOBAL RESULT
                     Bukkit.broadcastMessage(Memories.PREFIX + "§aLes résultats sont :");
                     AtomicInteger i = new AtomicInteger(1);
-                    final Map<Player, Float> scores = new HashMap<>();
+                    final Map<Player, Integer> scores = new HashMap<>();
                     for (Player player : PLAYERS_RESULT.keySet()) {
                         float pScore = 0;
                         for (Map.Entry<Arena, Float> entry : PLAYERS_RESULT.get(player).entrySet())
                             pScore += entry.getValue();
-                        scores.put(player, pScore / PLAYERS_RESULT.get(player).size());
+                        scores.put(player, (int) (pScore / PLAYERS_RESULT.get(player).size()));
                     }
                     scores.entrySet().stream().sorted(Map.Entry.comparingByValue(Collections.reverseOrder()))
                             .forEach(e -> {
@@ -162,11 +162,11 @@ public class Game {
 
     private void resetClocks() {
         try {
+            this.startingClock.reset();
             this.generationClock.reset();
             this.memorizeClock.reset();
             this.buildClock.reset();
             this.waitClock.reset();
-            this.finishClock.reset();
             this.finishClock.reset();
         } catch (Exception ignored) {}
     }
@@ -232,9 +232,11 @@ public class Game {
                 p.getInventory().clear();
                 p.sendMessage(Memories.PREFIX + "§eVous avez fait un score de §b" + result + "§7/§b100");
             }
+            Bukkit.getScheduler().runTask(JavaPlugin.getPlugin(Memories.class), () -> {
+                for (Arena arena : Arena.ARENAS)
+                    arena.clearArena();
+            });
         });
-        for (Arena arena : Arena.ARENAS)
-            arena.clearArena();
         this.turn++;
     }
 
